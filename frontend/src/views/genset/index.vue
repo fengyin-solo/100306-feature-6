@@ -70,7 +70,7 @@ import { request } from '@/api/client'
 type Row = Record<string, string | number | null>
 
 const ENDPOINT = '/api/genset'
-const columns = ["机组编号", "机组型号", "额定功率", "所属站点", "上次试机", "油量储备", "启动状态", "机组状态"]
+const columns = ["机组编号", "机组型号", "额定功率", "所属站点", "上次试机", "油量储备", "小时油耗", "启动状态", "机组状态"]
 const actions = ["启动发电", "关闭机组", "登记故障"]
 const statuses = ["待命", "发电中", "故障", "维修中"]
 const stats = [{"label": "待命机组", "value": 0}, {"label": "发电机组", "value": 0}, {"label": "故障机组", "value": 0}]

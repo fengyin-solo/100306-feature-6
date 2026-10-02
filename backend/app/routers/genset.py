@@ -1,4 +1,5 @@
-"""发电机组接口：维护发电机组，覆盖启动发电、关闭机组、登记故障等动作。"""
+"""发电机组接口：维护发电机组，覆盖启动发电、关闭机组、登记故障等动作，
+并提供按月排布的试机计划视图与试机安排/回填。"""
 from __future__ import annotations
 
 from typing import Any
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/api/genset", tags=["发电机组"])
 
 service = GensetService()
 
-LIST_FIELDS = ["机组编号", "机组型号", "额定功率", "所属站点", "上次试机", "油量储备", "启动状态", "机组状态"]
+LIST_FIELDS = ["机组编号", "机组型号", "额定功率", "所属站点", "上次试机", "油量储备", "小时油耗", "启动状态", "机组状态"]
 STATUSES = ["待命", "发电中", "故障", "维修中"]
 
 
@@ -28,6 +29,48 @@ def list_entries(
         raise HTTPException(status_code=400, detail="每页最多 200 条，请缩小分页范围")
     items, total = service.list_entries(keyword=keyword, status=status, page=page, size=size)
     return PageResult(items=items, total=total, page=page, size=size)
+
+
+@router.get("/test-plan/monthly")
+def monthly_test_plan(
+    month: str | None = Query(default=None, description="试机月份 YYYY-MM，缺省取当前月"),
+) -> dict[str, Any]:
+    """按月试机视图：按站点列出本月待试机组、距上次试机天数与一小时用油缺口。
+
+    本月已完成试机的机组只在「本月已试」里展示，不再排入待试；
+    没有机组记录的站点显式给出空标记，而不是记成待试机。
+    """
+    try:
+        return service.monthly_plan(month=month)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/{entry_id}/test-runs")
+def schedule_test_run(entry_id: int, payload: EntryPayload) -> ActionResult:
+    """给单台机组安排一次月度试机；complete=true 时直接回填试机完成并按试机时长扣油。
+
+    扣油落在站点油料台账的同一份当前存量上，机组油量储备随后与台账对齐；
+    本月已试、余量不足一小时或没有油料台账时会被拦下并说明原因。
+    """
+    values = payload.values
+    hours_raw = values.get("hours")
+    try:
+        hours = float(hours_raw) if hours_raw not in (None, "") else None
+    except (TypeError, ValueError):
+        return ActionResult(ok=False, message="试机时长必须是数字（小时）")
+    complete = bool(values.get("complete", False))
+    entry, message = service.schedule_test(
+        entry_id,
+        month=str(values.get("month") or "").strip() or None,
+        test_date=str(values.get("test_date") or "").strip() or None,
+        hours=hours,
+        complete=complete,
+        remark=payload.remark,
+    )
+    if entry is None:
+        return ActionResult(ok=False, message=message)
+    return ActionResult(ok=True, message=message, entry=entry)
 
 
 @router.get("/{entry_id}", response_model=dict)
