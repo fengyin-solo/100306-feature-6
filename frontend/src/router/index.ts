@@ -6,6 +6,7 @@ const Tower = () => import('@/views/tower/index.vue')
 const Power = () => import('@/views/power/index.vue')
 const Battery = () => import('@/views/battery/index.vue')
 const Genset = () => import('@/views/genset/index.vue')
+const GensetMonthly = () => import('@/views/genset/monthly.vue')
 const Rectifier = () => import('@/views/rectifier/index.vue')
 const Ac = () => import('@/views/ac/index.vue')
 const Antenna = () => import('@/views/antenna/index.vue')
@@ -31,6 +32,7 @@ const router = createRouter({
     { path: '/power', name: 'power', component: Power },
     { path: '/battery', name: 'battery', component: Battery },
     { path: '/genset', name: 'genset', component: Genset },
+    { path: '/genset/monthly', name: 'genset-monthly', component: GensetMonthly },
     { path: '/rectifier', name: 'rectifier', component: Rectifier },
     { path: '/ac', name: 'ac', component: Ac },
     { path: '/antenna', name: 'antenna', component: Antenna },

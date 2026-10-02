@@ -6,7 +6,8 @@
         <p class="page-desc">维护发电机组，围绕机组编号、机组型号、额定功率、所属站点做登记、筛选与状态流转。</p>
       </div>
       <div class="page-actions">
-        <button class="btn primary" type="button" @click="openCreate">登记发电机组</button>
+        <RouterLink class="btn primary" to="/genset/monthly">查看月度试机视图</RouterLink>
+        <button class="btn" type="button" @click="openCreate">登记发电机组</button>
         <button class="btn" type="button" @click="exportRows">导出发电机组清单</button>
       </div>
     </header>
